@@ -1,0 +1,44 @@
+version: "3"
+volumes:
+  config:
+services:
+  bookstack:
+    image: lscr.io/linuxserver/bookstack
+    container_name: bookstack
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - APP_URL=https://wiki.domain.tld
+      - DB_HOST=bookstack_db
+      - DB_USER=bookstack
+      - DB_PASS=
+      - DB_DATABASE=bookstackapp
+      - MAIL_DRIVER=smtp
+      - MAIL_HOST=
+      - MAIL_PORT=1025
+      - MAIL_ENCRYPTION=tls
+      - MAIL_USERNAME=
+      - MAIL_PASSWORD=
+      - MAIL_FROM=
+      - MAIL_FROM_NAME=Bookstack
+    volumes:
+      - config:/config
+    ports:
+      - 443:443
+    restart: unless-stopped
+    depends_on:
+      - bookstack_db
+  bookstack_db:
+    image: lscr.io/linuxserver/mariadb
+    container_name: bookstack_db
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - MYSQL_ROOT_PASSWORD=
+      - TZ=America/New_York
+      - MYSQL_DATABASE=bookstackapp
+      - MYSQL_USER=bookstack
+      - MYSQL_PASSWORD=
+    volumes:
+      - config:/config
+    restart: unless-stopped

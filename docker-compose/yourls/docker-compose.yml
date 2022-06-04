@@ -1,0 +1,26 @@
+version: "3.8"
+services:
+  yourls:
+    image: yourls:latest
+    restart: always
+    ports:
+      - 80:80
+    environment:
+      YOURLS_DB_PASS: 
+      YOURLS_SITE: https://domain.tld
+      YOURLS_USER: admin
+      YOURLS_PASS: 
+    volumes:
+      - ./plugins:/var/www/html/user/plugins
+    depends_on:
+      - mysql
+  mysql:
+    image: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 
+      MYSQL_DATABASE: yourls
+    volumes:
+      - mysql:/var/lib/mysql
+volumes:
+  mysql:

@@ -1,0 +1,46 @@
+version: "3.8"
+volumes:
+  mysql:
+  data:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=lando.local,hard,rw,nfsvers=4"
+      device: ":/mnt/user/docker/gitea"
+networks:
+  gitea:
+    external: false
+services:
+  server:
+    image: gitea/gitea:latest
+    container_name: gitea
+    environment:
+      - USER_UID=1001
+      - USER_GID=1001
+    restart: always
+    networks:
+      - gitea
+    volumes:
+      - /home/git/.ssh:/data/git/.ssh
+      - /root/docker/gitea/app.ini:/data/gitea/conf/app.ini
+      - data:/data
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "80:80"
+      - "127.0.0.1:2222:22"
+    depends_on:
+      - db
+  db:
+    image: mysql:8
+    cap_add: [ SYS_NICE ]
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=
+      - MYSQL_USER=gitea
+      - MYSQL_PASSWORD=
+      - MYSQL_DATABASE=gitea
+    networks:
+      - gitea
+    volumes:
+      - mysql:/var/lib/mysql
