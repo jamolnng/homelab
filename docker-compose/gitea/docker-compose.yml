@@ -23,12 +23,13 @@ services:
     volumes:
       - /home/git/.ssh:/data/git/.ssh
       - /root/docker/gitea/app.ini:/data/gitea/conf/app.ini
+      - /root/docker/gitea/templates:/data/gitea/templates
+      - /root/docker/gitea/public:/data/gitea/public
       - data:/data
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     ports:
       - "80:80"
-      - "127.0.0.1:2222:22"
     depends_on:
       - db
   db:
