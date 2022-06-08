@@ -1,0 +1,26 @@
+version: "3"
+volumes:
+  data:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=lando.local,rw,noatime,rsize=8192,wsize=8192,timeo=14,nfsvers=4"
+      device: ":/mnt/user/docker/filebrowser"
+services:
+  syncthing:
+    image: lscr.io/linuxserver/syncthing:latest
+    container_name: syncthing
+    hostname: syncthing
+    environment:
+      - PUID=1001
+      - PGID=1001
+      - TZ=America/New_York
+    volumes:
+      - /root/docker/syncthing/config:/config
+      - data:/data
+    ports:
+      - 443:8384
+      - 22000:22000/tcp
+      - 22000:22000/udp
+      - 21027:21027/udp
+    restart: unless-stopped

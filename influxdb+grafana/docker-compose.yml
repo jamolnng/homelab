@@ -1,0 +1,27 @@
+version: '3'
+volumes:
+  grafana-data:
+    driver: local
+  influxdb-data:
+    driver: local
+services:
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    restart: unless-stopped
+    depends_on:
+      - influxdb
+    environment:
+      - GF_SERVER_ROOT_URL=https://graph.domain.tld
+  influxdb:
+    image: influxdb:alpine
+    container_name: influxdb
+    ports:
+      - '8086:8086'
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+    restart: unless-stopped

@@ -1,0 +1,17 @@
+version: "2.1"
+services:
+  wikijs:
+    image: lscr.io/linuxserver/wikijs
+    container_name: wikijs
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/New_York
+    volumes:
+      - /root/docker/wikijs/config:/config
+      - /root/docker/wikijs/data:/data
+      - /root/docker/wikijs/favicon.ico:/wiki/assets/favicon.ico
+      - /root/docker/wikijs/favicons:/wiki/assets/favicons
+    ports:
+      - 3000:3000
+    restart: unless-stopped
