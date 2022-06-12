@@ -1,0 +1,91 @@
+version: "3.8"
+volumes:
+  mysql:
+  data:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=lando.local,rw,noatime,rsize=8192,wsize=8192,timeo=14,nfsvers=4"
+      device: ":/mnt/user/docker/gitea"
+networks:
+  gitea:
+    external: false
+services:
+  gitea:
+    image: gitea/gitea:latest
+    container_name: gitea
+    environment:
+      - USER_UID=1001
+      - USER_GID=100
+    restart: always
+    networks:
+      - gitea
+    volumes:
+      - /home/git/.ssh:/data/git/.ssh
+      - /root/docker/gitea/app.ini:/data/gitea/conf/app.ini
+      - /root/docker/gitea/templates:/data/gitea/templates
+      - /root/docker/gitea/public:/data/gitea/public
+      - data:/data
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "80:80"
+    depends_on:
+      - db
+  db:
+    image: mysql:8
+    container_name: gitea-db
+    cap_add: [ SYS_NICE ]
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=
+      - MYSQL_USER=gitea
+      - MYSQL_PASSWORD=
+      - MYSQL_DATABASE=gitea
+    networks:
+      - gitea
+    volumes:
+      - mysql:/var/lib/mysql
+  drone:
+    image: drone/drone:latest
+    container_name: gitea-drone
+    ports:
+      - 81:80
+      - 8000:8000
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data:/data
+    restart: always
+    depends_on:
+      - gitea
+    links:
+      - gitea
+    environment:
+      - DRONE_AGENTS_ENABLED=true
+      - DRONE_GITEA_CLIENT_ID=
+      - DRONE_GITEA_CLIENT_SECRET=
+      - DRONE_GITEA_SERVER=https://git.domain.tld
+      - DRONE_GIT_ALWAYS_AUTH=false
+      - DRONE_TLS_AUTOCERT=false
+      - DRONE_SERVER_HOST=drone.domain.tld
+      - DRONE_SERVER_PROTO=https
+      - DRONE_RPC_SECRET=
+      - DRONE_LOGS_DEBUG=false
+      - DRONE_ADMIN=your_user_name
+      - DRONE_USER_CREATE=username:your_user_name,admin:true
+  drone-runner-docker:
+    container_name: gitea-drone-runner-docker
+    image: drone/drone-runner-docker:latest
+    restart: always
+    depends_on:
+      - drone
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    links:
+      - drone
+      - gitea
+    environment:
+      - DRONE_RPC_HOST=drone.domain.tld
+      - DRONE_RPC_PROTO=https
+      - DRONE_RPC_SECRET=
+      - DRONE_RUNNER_NAME=drone-runner-docker
